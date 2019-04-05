@@ -1,0 +1,7 @@
+isep/technical_challenge/*
+isep/__pycache__/*
+isep/models/*.model
+isep/results_n_plots/*.log
+isep/.idea
+isep/raw_data/*
+isep/rew_data/*
