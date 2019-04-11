@@ -1,0 +1,26 @@
+# For requirements file
+Django==1.4.1
+distribute==0.6.27
+dj-database-url==0.2.1
+psycopg2==2.4.5
+wsgiref==0.1.2
+
+scipy==1.1.0
+numpy==1.15.3
+matplotlib==3.0.1
+scikit-learn==0.20.0
+PyYAML==3.13
+
+
+# For Environment file
+name: machine-learning-challenge-env
+channels:
+ - defaults
+ - conda-forge
+dependencies:
+ - joblib
+ - pandas
+ - python=3.6
+ - scikit-learn
+ - pip:
+   - tensorflow

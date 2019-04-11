@@ -39,6 +39,11 @@ class OberserverTSDataset(Dataset):
 	
 	def close(self):
 		self.h5py_ref.close()
+		
+		
+	def get_loc_names(self):
+		# TODO: if location names are saved
+		return None
 
 
 class TestTSDataset(Dataset):
@@ -63,3 +68,7 @@ class TestTSDataset(Dataset):
 	
 	def close(self):
 		self.h5py_ref.close()
+
+	def get_loc_names(self):
+		# TODO: if location names are saved
+		return None

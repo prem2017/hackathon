@@ -14,9 +14,15 @@ import pandas as pd
 import torch
 
 
-OUTPUT_FEATURES_NUM = 3
 
-TRAIN_BATCH_SIZE = 8
+# For HP Finders
+SEARCH_LR = False
+
+
+OUTPUT_FEATURES_NUM = 3
+OUPUT_FEATURES_NAME_LIST = ['Humidity', 'Temperature', 'Precipitation']
+
+TRAIN_BATCH_SIZE = 4
 VALIDATION_BATCH_SIZE = 1
 import logging
 logging.basicConfig(level=logging.INFO, format='%(messages)s')
@@ -36,6 +42,7 @@ def get_data_path(file_name):
 	
 RESULT_DIR = os.path.join(PROJECT_PATH, 'results_n_plots/')
 get_result_dir = lambda : RESULT_DIR
+get_test_result_dir = lambda : os.path.join(RESULT_DIR, 'test_results/')
 
 # Store trained model
 TRAINED_MODELPATH = os.path.join(PROJECT_PATH, 'models/')
@@ -54,6 +61,9 @@ get_trained_model_name = lambda : TRAINED_MODELNAME
 
 
 def get_obs_datapath(dirname='observations/'):
+	return os.path.join(BASE_DATA_PATH, dirname)
+
+def get_test_datapath(dirname='observations/'):
 	return os.path.join(BASE_DATA_PATH, dirname)
 
 
@@ -78,6 +88,20 @@ def setup_logger(filename='output.log'):
 	filepath = os.path.join(RESULT_DIR, filename)
 	logger.addHandler(logging.FileHandler(filepath, 'a'))
 
+def construct_dictstring(dict_input):
+	if not isinstance(dict_input, dict):
+		return dict_input
+
+	str_out = '{'
+	for k, v in dict_input.items():
+		str_out = str_out + '\n\n  ' \
+		          + str(k) \
+		          + '\n   =>  ' \
+		          + str(v)
+
+	str_out = str_out + '\n\n' + '}'
+	return str_out
+
 
 class Metric(object):
 	"""docstring for Metric
@@ -96,10 +120,12 @@ class Metric(object):
 
 	@staticmethod # TODO: https://en.wikipedia.org/wiki/Mean_absolute_scaled_error
 	def mean_absolute_scaled_err(y_true: np.ndarray, y_forcast: np.ndarray) -> float:
-		
-		
-		
 		return None
+	
+	
+	@staticmethod
+	def mean_square_error(y_true: np.ndarray, y_forcast: np.ndarray) -> float:
+		return float(np.mean((y_true - y_forcast) * (y_true-y_forcast)))
 
 
 # parser for file

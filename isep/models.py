@@ -18,8 +18,8 @@ class EncoderGRU(nn.Module):
 	"""docstring for EncoderGRU
 	"""
 	def __init__(self, input_dimensions=3,
-	             hidden_dimensions=512,
-	             rnn_hidden_layers=3,
+	             hidden_dimensions=256,
+	             rnn_hidden_layers=1,
 	             input_seq_len=96,
 	             output_seq_len=48,
 	             dropout=0.0,
@@ -35,7 +35,7 @@ class EncoderGRU(nn.Module):
 		self.input_seq_len = input_seq_len
 		self.output_seq_len = output_seq_len
 		
-		self.dropout = dropout
+		self.dropout_val = dropout
 		self.batch_first = batch_first
 		
 		self.bidirectional = bidirectional
@@ -50,7 +50,7 @@ class EncoderGRU(nn.Module):
 		                  hidden_size=self.hidden_dimensions,
 		                  num_layers=self.gru_hidden_layers,
 		                  batch_first=self.batch_first,
-		                  dropout=self.dropout,
+		                  dropout=self.dropout_val,
 		                  bidirectional=self.bidirectional
 		                  )
 		
@@ -65,7 +65,7 @@ class EncoderGRU(nn.Module):
 			                                   momentum=0.1)
 		
 		
-		if self.dropout > 0.0 and self.use_extra_dropout:
+		if self.dropout_val > 0.0 and self.use_extra_dropout:
 			self.dropout = nn.Dropout(p=self.dropout)
 		
 		
@@ -108,7 +108,7 @@ class DecoderGRU(nn.Module):
 	"""docstring for DecoderGRU
 
 	"""
-	def __init__(self, output_dimensions=util.OUTPUT_FEATURES_NUM, hidden_dimension=512, bidirectional=False, batch_first=True):
+	def __init__(self, output_dimensions=util.OUTPUT_FEATURES_NUM, hidden_dimension=256, bidirectional=False, batch_first=True, dropout=0.0):
 		super(DecoderGRU, self).__init__()
 		self.output_dimensions = output_dimensions
 		self.hidden_dimensions = hidden_dimension
@@ -122,8 +122,11 @@ class DecoderGRU(nn.Module):
 		self.gru_decoder = nn.GRU(input_size=self.output_dimensions,
 		                          hidden_size=self.decoder_in_features,
 		                          batch_first=self.batch_first)
-		self.fc = nn.Linear(in_features=self.decoder_in_features,
-		                    out_features=self.output_dimensions)
+		self.dropout = nn.Dropout(p=dropout)
+		self.fc1 = nn.Linear(in_features=self.decoder_in_features,
+		                    out_features=self.decoder_in_features // 2)
+		self.leaky_rely = nn.LeakyReLU()
+		self.fc2 = nn.Linear(in_features=self.decoder_in_features // 2, out_features=self.output_dimensions)
 		self.init_states = None
 		
 	
@@ -136,7 +139,9 @@ class DecoderGRU(nn.Module):
 		# hidden_states = hidden_states.detach()
 		output, hidden_states = self.gru_decoder(Xp, hidden_states)
 
-		output = self.fc(output)
+		output = self.fc1(output)
+		output = self.leaky_rely(output)
+		output = self.fc2(output)
 		return output, hidden_states
 		
 	

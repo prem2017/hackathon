@@ -1,0 +1,11 @@
+name: torch_v1
+channels:
+ - defaults
+ - conda-forge
+dependencies:
+ - python>=3.6
+ - numpy
+ - matplotlib
+ - pandas
+ - h5py
+ - pytorch>=1.0.0

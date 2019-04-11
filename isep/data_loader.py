@@ -75,7 +75,15 @@ def tranform_observed_data(seq_len, forcast_len, advance_len=None, val=0.1, test
 		print('\nsaved for = ', fname_hdf5)
 		save_in_hdf5(fname_hdf5, np.array(X[start_pos:start_pos+size_len, :, :]).astype(np.float64), np.array(Y[start_pos: start_pos+size_len, :, :]).astype(np.float64))
 		
-	
+
+
+def transform_test_data():
+	pass
+
+
+
+
+
 
 
 
@@ -85,3 +93,17 @@ if __name__ == '__main__':
 	# tranform_observed_data(256, 64, 128)
 	tranform_observed_data(192, 48, 16)
 	# tranform_observed_data(96, 48, 8)
+	
+	# TODO: normalize data and then store train, val, test
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

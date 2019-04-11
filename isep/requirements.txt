@@ -1,0 +1,6 @@
+python3-openid==3.1.0; python_version >= '3.6'
+numpy==1.14.3
+matplotlib==2.2.3
+pandas==0.23.0
+h5py==2.7.0
+torch==1.0.1
