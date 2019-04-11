@@ -251,18 +251,17 @@ def calc_validation_loss(model, val_dataloader, loss_func):
 # Plot training loss
 def plot_loss(losses, plot_file_name='training_loss.png', title='Training Loss', xlabel='Epochs'):
 	fig = plt.figure()
-
+	label_key = {'train': 'Training Loss', 'val': 'Validation Loss'}
 	if isinstance(losses, dict):
 		for k, v in losses.items():
-			plt.plot(range(1, len(v)), v[1:], '-*', markersize=6, lw=2, alpha=0.6, label=k)
-			
-	else:
-		plt.plot(range(1, len(losses)+1), losses, '-*', markersize=6, lw=2, alpha=0.6)
+			plt.plot(range(1, len(v)), v[1:], '-*', markersize=3, lw=1, alpha=0.6, label=label_key[k])
 	
+	else:
+		plt.plot(range(1, len(losses) + 1), losses, '-*', markersize=3, lw=1, alpha=0.6)
 	
 	plt.title(title)
 	plt.xlabel(xlabel)
-	plt.ylabel('Cross Entropy Loss')
+	plt.ylabel('Mean Square Loss (MSE)')
 	plt.legend(loc='upper right')
 	full_path = os.path.join(util.RESULT_DIR, plot_file_name)
 	fig.tight_layout()  # https://stackoverflow.com/questions/6541123/improve-subplot-size-spacing-with-many-subplots-in-matplotlib
@@ -299,7 +298,7 @@ def train_weather_prediction_ts(train_datapth, val_datapath):
 	if util.SEARCH_LR:
 		start_lr, end_lr, epochs = 1e-7, 10, 20
 	else:
-		start_lr, end_lr, epochs = 3e-3, 6e-3, 150 # 7e-3, 11e-3, 60
+		start_lr, end_lr, epochs = 3e-3, 6e-3, 70 # 7e-3, 11e-3, 60
 	train_params['start_lr'] = start_lr = start_lr
 	train_params['end_lr'] = end_lr
 	train_params['num_epochs'] = epochs
