@@ -58,16 +58,16 @@ def forcast_weather(model, test_fname, forcast_len=192, only_test=False):
 	with torch.no_grad():
 		for i, (x, y) in enumerate(dataloader):
 			x, y = x.to(device=util.device, dtype=torch.float), y.to(device=util.device, dtype=torch.float)
-			x_encoded_ouput = hidden = model['encoder_gru'](x)
+			output, hidden = model['encoder_gru'](x)
 			y_pred_seq = None
 			# y_pred_ts = torch.zeros(x.shape[0], 1, y.shape[-1] if y != -1 else util.OUTPUT_FEATURES_NUM)
 			# [Note]: Input sequence for start of prediction can be zero of last known observation i.e. last timestamp from the sequence encoder by encoder
-			y_pred_ts = x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, util.OUTPUT_FEATURES_NUM)
+			# y_pred_ts = x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, util.OUTPUT_FEATURES_NUM)
 			# y_pred_ts = torch.zeros(x.shape[0], 1, util.OUTPUT_FEATURES_NUM)
-			y_pred_ts = y_pred_ts.to(util.device)
+			# y_pred_ts = y_pred_ts.to(util.device)
 			for j in range(forcast_len):
-				y_pred_ts, hidden = model['decoder_gru'](y_pred_ts, hidden) # y_pred_ts.size = #batch_size * 1 * output
-				y_pred_seq = torch.cat((y_pred_seq, y_pred_ts), dim=-2) if y_pred_seq is not None else y_pred_ts # contanate along seq i.e. 2nd from last
+				output, hidden = model['decoder_gru'](output, hidden) # y_pred_ts.size = #batch_size * 1 * output
+				y_pred_seq = torch.cat((y_pred_seq, output), dim=-2) if y_pred_seq is not None else output # contanate along seq i.e. 2nd from last
 			
 			ypred_all.append(y_pred_seq.cpu().numpy())
 			if not only_test:

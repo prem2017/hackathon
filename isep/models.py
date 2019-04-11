@@ -19,6 +19,7 @@ class EncoderGRU(nn.Module):
 	"""
 	def __init__(self, input_dimensions=3,
 	             hidden_dimensions=256,
+	             output_dimensions=3,
 	             rnn_hidden_layers=1,
 	             input_seq_len=96,
 	             output_seq_len=48,
@@ -29,6 +30,7 @@ class EncoderGRU(nn.Module):
 		super(EncoderGRU, self).__init__()
 		self.input_dimensions = input_dimensions
 		self.hidden_dimensions = hidden_dimensions
+		self.output_dimensions=output_dimensions
 		
 		self.gru_hidden_layers = rnn_hidden_layers
 		
@@ -69,6 +71,7 @@ class EncoderGRU(nn.Module):
 			self.dropout = nn.Dropout(p=self.dropout)
 		
 		
+		self.fc = nn.Linear(in_features=self.hidden_dimensions, out_features=self.output_dimensions)
 		self.init_states = None
 	
 	def get_output_seq_len(self):
@@ -99,7 +102,13 @@ class EncoderGRU(nn.Module):
 		# Remember that initial states will be [(self.gru_hidden_layers * self.num_directions) x (X.shape[self.batch_index]) x (self.hidden_dimensions)]
 		#
 		# initial_states[-self.num_directions:, :, :] # output_gru[:,-1, :self.hidden_dimensions].view(1, -1, self.hidden_dimensions)
-		return output_gru[:,-1, :self.hidden_dimensions].view(1, -1, self.hidden_dimensions) # initial_states[-1, :, :]
+		rnn_output_of_last_seq = output_gru[:,-1:, :self.hidden_dimensions] # .view(1, -1, self.hidden_dimensions) # initial_states[-1, :, :]
+		output = self.fc(rnn_output_of_last_seq)
+		hidden = initial_states # assume that number of hidden layers and directions are same in decoder as well
+		return output, hidden
+		
+		
+		
 		
 	
 

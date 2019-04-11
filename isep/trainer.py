@@ -109,18 +109,18 @@ def train_network(dataloader, model, loss_function, optimizer, start_lr, end_lr,
 			for _, opt in optimizer.items():
 				opt.zero_grad()
 			
-			y_encoded_hidden = model['encoder_gru'](x) # initial_states[-1, :, :] i.e shape => [-1 (#layers) x batch-size x hidden-size]
+			output, hidden = model['encoder_gru'](x) # initial_states[-1, :, :] i.e shape => [-1 (#layers) x batch-size x hidden-size]
 			output_seq_len = model['encoder_gru'].get_output_seq_len()
 			ypred_seq = None
 			# [Note]: Input sequence for start of prediction can be zero of last known observation i.e. last timestamp from the sequence encoder by encoder
-			y_decoded_tstamp = x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, y.shape[-1]) # shape => [batch-size x seq-size (here is 11) x feature-size]
+			# y_decoded_tstamp = x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, y.shape[-1]) # shape => [batch-size x seq-size (here is 11) x feature-size]
 			# y_decoded_tstamp = torch.zeros(x.shape[0], 1, y.shape[-1])
-			y_decoded_tstamp = y_decoded_tstamp.to(util.device)
+			# y_decoded_tstamp = y_decoded_tstamp.to(util.device)
 			for j in range(output_seq_len):
-				y_decoded_tstamp, y_encoded_hidden  = model['decoder_gru'](y_decoded_tstamp, y_encoded_hidden)
-				loss += loss_function(y_decoded_tstamp.view(-1), y[:, j:j+1, :].contiguous().view(-1))
+				output, hidden  = model['decoder_gru'](output, hidden)
+				loss += loss_function(output.view(-1), y[:, j:j+1, :].contiguous().view(-1))
 				# y_forcast =  np.vstack((y_forcast, y_decoded_tstamp.view(-1, 1).data().cpu().numpy())) if y_forcast is not None else y_decoded_tstamp.view(-1, 1).data().cpu().numpy()
-				ypred_seq = torch.cat((ypred_seq, y_decoded_tstamp), dim=-2) if ypred_seq is not None else y_decoded_tstamp # contanate along seq i.e. 2nd from last
+				ypred_seq = torch.cat((ypred_seq, output), dim=-2) if ypred_seq is not None else output # contanate along seq i.e. 2nd from last
 
 		
 			loss.backward()
@@ -226,20 +226,20 @@ def calc_validation_loss(model, val_dataloader, loss_func):
 		y = y.to(device=util.device, dtype=torch.float)
 		# print('[Val comp] i = ', i)
 		
-		y_encoded_hidden = model['encoder_gru'](x)
+		output, hidden = model['encoder_gru'](x)
 		output_length = model['encoder_gru'].get_output_seq_len()
 		
 		# [Note]: Input sequence for start of prediction can be zero of last known observation i.e. last timestamp from the sequence encoder by encoder
-		y_decoded_tstamp =  x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, y.shape[-1])
+		# y_decoded_tstamp =  x[:, -1, :].view(-1, 1, x.shape[-1]) if x.shape[-1] == y.shape[-1] else torch.zeros(x.shape[0], 1, y.shape[-1])
 		# y_decoded_tstamp = torch.zeros(x.shape[0], 1, y.shape[-1])
-		y_decoded_tstamp = y_decoded_tstamp.to(util.device)
+		# y_decoded_tstamp = y_decoded_tstamp.to(util.device)
 		loss = 0
 		with torch.no_grad():
 			for j in range(output_length):
-				y_decoded_tstamp, y_encoded_hidden = model['decoder_gru'](y_decoded_tstamp, y_encoded_hidden)
-				loss += loss_func(y_decoded_tstamp.view(-1), y[:, j, :].contiguous().view(-1))
+				output, hidden = model['decoder_gru'](output, hidden)
+				loss += loss_func(output.view(-1), y[:, j, :].contiguous().view(-1))
 				y_true = np.vstack((y_true, y[:, j:j+1, :].view(-1, 1).cpu().numpy())) if y_true is not None else y[:, j, :].view(-1, 1).cpu().numpy()
-				y_forcast =  np.vstack((y_forcast, y_decoded_tstamp.view(-1, 1).cpu().numpy())) if y_forcast is not None else y_decoded_tstamp.view(-1, 1).cpu().numpy()
+				y_forcast =  np.vstack((y_forcast, output.view(-1, 1).cpu().numpy())) if y_forcast is not None else output.view(-1, 1).cpu().numpy()
 		
 		loss_val += (loss.item() / output_length)
 		
@@ -299,7 +299,7 @@ def train_weather_prediction_ts(train_datapth, val_datapath):
 	if util.SEARCH_LR:
 		start_lr, end_lr, epochs = 1e-7, 10, 20
 	else:
-		start_lr, end_lr, epochs = 3e-3, 6e-3, 150 # 7e-3, 11e-3, 60
+		start_lr, end_lr, epochs = 3e-3, 6e-3, 40 # 7e-3, 11e-3, 60
 	train_params['start_lr'] = start_lr = start_lr
 	train_params['end_lr'] = end_lr
 	train_params['num_epochs'] = epochs
